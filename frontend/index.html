@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CM - Loan | AI Credit Check</title>
+    <style>
+        body { font-family: system-ui, -apple-system, sans-serif; background: #0f172a; color: #f8fafc; display: flex; justify-content: center; padding: 30px 15px; margin: 0; }
+        .card { background: #1e293b; padding: 28px; border-radius: 14px; max-width: 440px; width: 100%; box-shadow: 0 10px 25px rgba(0,0,0,0.4); }
+        h2 { margin-top: 0; color: #38bdf8; text-align: center; margin-bottom: 4px; }
+        .subtitle { text-align: center; font-size: 13px; color: #94a3b8; margin-bottom: 20px; }
+        label { display: block; margin-top: 12px; font-size: 14px; color: #cbd5e1; }
+        input, select { width: 100%; padding: 10px; margin-top: 5px; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: white; box-sizing: border-box; font-size: 14px; }
+        button { width: 100%; padding: 12px; margin-top: 22px; background: #0284c7; color: white; border: none; border-radius: 8px; font-weight: bold; font-size: 15px; cursor: pointer; transition: background 0.2s; }
+        button:hover { background: #0369a1; }
+        button:disabled { background: #475569; cursor: not-allowed; }
+        #result { margin-top: 20px; padding: 15px; border-radius: 8px; display: none; line-height: 1.5; font-size: 14px; }
+        .safe { background: #064e3b; border: 1px solid #10b981; color: #a7f3d0; }
+        .risk { background: #7f1d1d; border: 1px solid #ef4444; color: #fecaca; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>🏦 CM - Loan AI</h2>
+        <p class="subtitle">Cek Kelayakan Pinjaman Berbasis AWS SageMaker & Amplify</p>
+        
+        <label>Nama Lengkap</label>
+        <input type="text" id="nama" placeholder="Contoh: Budi Santoso" required>
+        
+        <label>Umur (Tahun)</label>
+        <input type="number" id="umur" placeholder="Contoh: 32" required>
+        
+        <label>Jenis Pekerjaan</label>
+        <select id="pekerjaan">
+            <option value="3">PNS / BUMN / Pegawai Tetap</option>
+            <option value="4">Pengusaha / Wiraswasta</option>
+            <option value="2">Karyawan Swasta Kontrak</option>
+            <option value="1">Pekerja Lepas / Freelance</option>
+        </select>
+        
+        <label>Gaji Bulanan (Dalam Juta Rp)</label>
+        <input type="number" id="gaji" placeholder="Contoh: 12 (untuk 12 Juta)" required>
+        
+        <label>Lama Bekerja (Tahun)</label>
+        <input type="number" id="lama_kerja" placeholder="Contoh: 4" required>
+        
+        <label>Jumlah Pinjaman (Dalam Juta Rp)</label>
+        <input type="number" id="pinjaman" placeholder="Contoh: 15 (untuk 15 Juta)" required>
+        
+        <button onclick="cekPinjaman()" id="btn">Analisis Kelayakan dengan AI</button>
+        <div id="result"></div>
+    </div>
+
+    <script>
+        // GANTI URL DI BAWAH INI DENGAN FUNCTION URL LAMBDA KALIAN
+        const LAMBDA_API_URL = 'ISI_FUNCTION_URL_LAMBDA_KALIAN_DISINI';
+
+        async function cekPinjaman() {
+            const btn = document.getElementById('btn');
+            const resDiv = document.getElementById('result');
+            
+            if (LAMBDA_API_URL.includes('ISI_FUNCTION_URL')) {
+                alert('Jangan lupa ganti LAMBDA_API_URL di dalam index.html terlebih dahulu!');
+                return;
+            }
+
+            btn.innerText = "Sedang menganalisis...";
+            btn.disabled = true;
+
+            const data = {
+                nama: document.getElementById('nama').value,
+                umur: document.getElementById('umur').value,
+                pekerjaan: document.getElementById('pekerjaan').value,
+                gaji: document.getElementById('gaji').value,
+                lama_kerja: document.getElementById('lama_kerja').value,
+                pinjaman: document.getElementById('pinjaman').value
+            };
+
+            try {
+                const response = await fetch(LAMBDA_API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const hasil = await response.json();
+                resDiv.style.display = 'block';
+                if (hasil.error) {
+                    resDiv.className = 'risk';
+                    resDiv.innerHTML = '<strong>Error:</strong> ' + hasil.error;
+                } else {
+                    resDiv.className = hasil.skor >= 50 ? 'risk' : 'safe';
+                    resDiv.innerHTML = `<strong>${hasil.status}</strong><br><br>${hasil.pesan}`;
+                }
+            } catch (err) {
+                alert("Gagal menghubungi server: " + err);
+            } finally {
+                btn.innerText = "Analisis Kelayakan dengan AI";
+                btn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
